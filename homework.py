@@ -64,7 +64,7 @@ def get_api_answer(timestamp: int) -> dict:
         if homework_statuses.status_code != HTTPStatus.OK:
             logging.error('Недоступность эндпоинта')
             raise StatusOkException(f'Ответ API:'
-                                       f'{homework_statuses.status_code}')
+                                    f'{homework_statuses.status_code}')
     except requests.exceptions.RequestException as error:
         logging.error(f'Эндпойнт недоступен: {error}')
         raise exceptions.RequestException(f'Эндпойнт недоступен:{error}')
