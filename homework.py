@@ -12,9 +12,9 @@ from exceptions import StatusOkException, MessageError
 
 load_dotenv()
 
-PRACTICUM_TOKEN = os.getenv('SECRET_PRACTICUM_TOKEN')
-TELEGRAM_TOKEN = os.getenv('SECRET_TELEGRAM_TOKEN')
-TELEGRAM_CHAT_ID = os.getenv('SECRET_TELEGRAM_CHAT_ID')
+PRACTICUM_TOKEN = os.getenv('PTOKEN')
+TELEGRAM_TOKEN = os.getenv('TTOKEN')
+TELEGRAM_CHAT_ID = os.getenv('TCID')
 
 RETRY_PERIOD = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
