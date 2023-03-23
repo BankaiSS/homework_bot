@@ -66,7 +66,7 @@ def get_api_answer(timestamp: int) -> dict:
                                          headers=HEADERS,
                                          params=payload)
         logger.info(f'Отправлен запрос к API. '
-                     f'Ответ API: {homework_statuses.status_code}')
+                    f'Ответ API: {homework_statuses.status_code}')
         if homework_statuses.status_code != HTTPStatus.OK:
             logger.error('Недоступность эндпоинта')
             raise NotStatusOkException(f'Ответ API:'
@@ -75,7 +75,7 @@ def get_api_answer(timestamp: int) -> dict:
     except requests.exceptions.RequestException as error:
         logger.error(f'Эндпойнт недоступен: {error}')
     except Exception as error:
-        raise ('Ответ не преобразовался в json')
+        raise (f'Ответ не преобразовался в json: {error}')
 
 
 def check_response(response: dict) -> list:
