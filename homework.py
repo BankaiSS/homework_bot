@@ -74,7 +74,6 @@ def get_api_answer(timestamp: int) -> dict:
         return homework_statuses.json()
     except requests.exceptions.RequestException as error:
         logger.error(f'Эндпойнт недоступен: {error}')
-        raise exceptions.RequestException(f'Эндпойнт недоступен:{error}')
     except Exception as error:
         raise ('Ответ не преобразовался в json')
 
