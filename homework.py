@@ -74,7 +74,7 @@ def get_api_answer(timestamp: int) -> dict:
     except requests.exceptions.RequestException as error:
         logger.error(f'Эндпойнт недоступен: {error}')
     except JSONDecodeError as json_error:
-        raise JSONDecodeError (f'Ошибка декодирования {json_error}')
+        raise JSONDecodeError(f'Ошибка декодирования {json_error}')
 
 
 def check_response(response: dict) -> list:
