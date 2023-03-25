@@ -5,11 +5,11 @@ import time
 from http import HTTPStatus
 from json.decoder import JSONDecodeError
 from logging import StreamHandler
+from dotenv import load_dotenv
 
 import requests
 import telegram
 
-from dotenv import load_dotenv
 from exceptions import NotStatusOkException
 
 load_dotenv()
