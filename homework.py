@@ -2,15 +2,14 @@ import logging
 import os
 import sys
 import time
-
 from http import HTTPStatus
-from logging import StreamHandler
-from dotenv import load_dotenv
 from json.decoder import JSONDecodeError
+from logging import StreamHandler
 
 import requests
 import telegram
 
+from dotenv import load_dotenv
 from exceptions import NotStatusOkException
 
 load_dotenv()
@@ -68,7 +67,6 @@ def get_api_answer(timestamp: int) -> dict:
         logger.info(f'Отправлен запрос к API. '
                     f'Ответ API: {homework_statuses.status_code}')
         if homework_statuses.status_code != HTTPStatus.OK:
-            logger.error('Недоступность эндпоинта')
             raise NotStatusOkException(f'Ответ API:'
                                        f'{homework_statuses.status_code}')
         return homework_statuses.json()
@@ -98,10 +96,8 @@ def parse_status(homework: dict) -> str:
     if (not isinstance(homework, dict)
         or 'status' not in homework
             or homework.get('status') not in HOMEWORK_VERDICTS):
-        logger.error(TypeError)
         raise TypeError
     if 'homework_name' not in homework:
-        logger.error(TypeError)
         raise TypeError
     homework_name = homework.get('homework_name')
     verdict = HOMEWORK_VERDICTS.get(homework.get('status'))
@@ -136,7 +132,7 @@ def main() -> str:
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             send_message(bot, message)
-            logger.error(error, exc_info=True)
+            logger.exception(error, exc_info=True)
         finally:
             previous_response = response
             first_compare = False
