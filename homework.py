@@ -4,11 +4,12 @@ import sys
 import time
 from http import HTTPStatus
 from logging import StreamHandler
+from dotenv import load_dotenv
+from json.decoder import JSONDecodeError
 
 import requests
 import telegram
 
-from dotenv import load_dotenv
 from exceptions import NotStatusOkException
 
 load_dotenv()
@@ -28,7 +29,6 @@ HOMEWORK_VERDICTS = {
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
 
-invalid_chatid = []
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -51,8 +51,7 @@ def send_message(bot: telegram, message: str) -> None:
         logger.info('Отправляем сообщение в чат...')
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.debug('Успешная отправка сообщения!.')
-    except Exception as error:
-        invalid_chatid.append(TELEGRAM_CHAT_ID)
+    except telegram.TelegramError as error:
         logger.error(error, exc_info=True)
 
 
@@ -74,24 +73,23 @@ def get_api_answer(timestamp: int) -> dict:
         return homework_statuses.json()
     except requests.exceptions.RequestException as error:
         logger.error(f'Эндпойнт недоступен: {error}')
-    except Exception as error:
-        raise (f'Ответ не преобразовался в json: {error}')
+    except JSONDecodeError as json_error:
+        raise JSONDecodeError (f'Ошибка декодирования {json_error}')
 
 
 def check_response(response: dict) -> list:
     """Проверяет ответ API на соответствие документации."""
-    if isinstance(response, dict):
-        try:
-            homeworks = response['homeworks']
-        except KeyError as error:
-            logger.error(
-                (f'В ответе API Яндекс.Практикум нет ДЗ: {error}')
-            )
-        if not isinstance(homeworks, list):
-            raise TypeError('В ответе API Яндекс.Практикум нет ДЗ.')
-        logger.info('Информация получена о вашем ДЗ')
-        return homeworks
-    raise TypeError('В ответе API не обнаружен словарь')
+    if not isinstance(response, dict):
+        raise TypeError(f'Некорректный тип данных {type(response)}')
+    elif 'homeworks' not in response:
+        raise TypeError('homeworks отсутствует в response')
+    elif 'current_date' not in response:
+        raise TypeError('current_date отсутствует в response')
+    elif not isinstance(response['homeworks'], list):
+        raise TypeError(
+            f"Некорректный тип данных {type(response['homeworks'])},"
+            f"Должен быть list"
+        )
 
 
 def parse_status(homework: dict) -> str:
@@ -124,7 +122,7 @@ def main() -> str:
         try:
             response = get_api_answer(timestamp)
             check_response(response)
-            if first_compare is True:
+            if first_compare > 0:
                 message = parse_status(response.get('homeworks')[0])
                 send_message(bot, message)
             else:
@@ -133,6 +131,7 @@ def main() -> str:
                 if status_1 != status_2:
                     message = parse_status(response.get('homeworks')[0])
                     send_message(bot, message)
+                    response['current_date']
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             send_message(bot, message)
