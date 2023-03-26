@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import requests
 import telegram
 
-from exceptions import NotStatusOkException
+from exceptions import ErrorOfRequest,NotStatusOkException
 
 load_dotenv()
 
@@ -70,8 +70,9 @@ def get_api_answer(timestamp: int) -> dict:
             raise NotStatusOkException(f'Ответ API:'
                                        f'{homework_statuses.status_code}')
         return homework_statuses.json()
-    except requests.exceptions.RequestException as error:
-        logger.error(f'Эндпойнт недоступен: {error}')
+    except requests.RequestException as error:
+        raise ErrorOfRequest(f'При запросе к API ЯП'
+                             f'возникла ошибка {error}')
     except JSONDecodeError as json_error:
         raise JSONDecodeError(f'Ошибка декодирования {json_error}')
 
@@ -119,7 +120,7 @@ def main() -> str:
         try:
             response = get_api_answer(timestamp)
             check_response(response)
-            if not first_compare:
+            if response['homeworks'] == []:
                 logger.debug('Ответ API пуст: нет домашних работ.')
             if first_compare:
                 message = parse_status(response.get('homeworks')[0])
