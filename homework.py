@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import requests
 import telegram
 
-from exceptions import ErrorOfRequest,NotStatusOkException
+from exceptions import ErrorOfRequest, NotStatusOkException
 
 load_dotenv()
 
