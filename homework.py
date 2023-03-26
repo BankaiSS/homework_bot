@@ -71,7 +71,7 @@ def get_api_answer(timestamp: int) -> dict:
                                        f'{homework_statuses.status_code}')
         return homework_statuses.json()
     except requests.exceptions.RequestException as error:
-        logger.error(f'Эндпойнт недоступен: {error}')
+       logger.error(f'Эндпойнт недоступен: {error}')
     except JSONDecodeError as json_error:
         raise JSONDecodeError(f'Ошибка декодирования {json_error}')
 
@@ -119,7 +119,9 @@ def main() -> str:
         try:
             response = get_api_answer(timestamp)
             check_response(response)
-            if first_compare > 0:
+            if not first_compare:
+                logger.debug('Ответ API пуст: нет домашних работ.')
+            if first_compare:
                 message = parse_status(response.get('homeworks')[0])
                 send_message(bot, message)
             else:
@@ -128,7 +130,7 @@ def main() -> str:
                 if status_1 != status_2:
                     message = parse_status(response.get('homeworks')[0])
                     send_message(bot, message)
-                    response['current_date']
+                    timestamp = response.get('current_date')
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             send_message(bot, message)
