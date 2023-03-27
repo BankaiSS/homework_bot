@@ -81,6 +81,8 @@ def check_response(response: dict) -> list:
     """Проверяет ответ API на соответствие документации."""
     if not isinstance(response, dict):
         raise TypeError(f'Некорректный тип данных {type(response)}')
+    if not ['homeworks']:
+        raise TypeError('В ответе API нет ДЗ')
     elif 'homeworks' not in response:
         raise TypeError('homeworks отсутствует в response')
     elif 'current_date' not in response:
@@ -97,9 +99,9 @@ def parse_status(homework: dict) -> str:
     if (not isinstance(homework, dict)
         or 'status' not in homework
             or homework.get('status') not in HOMEWORK_VERDICTS):
-        raise TypeError
+        raise TypeError('Некорректный статус')
     if 'homework_name' not in homework:
-        raise TypeError
+        raise TypeError('В ответе отсутствует ожидаемый ключ')
     homework_name = homework.get('homework_name')
     verdict = HOMEWORK_VERDICTS.get(homework.get('status'))
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
@@ -120,8 +122,6 @@ def main() -> str:
         try:
             response = get_api_answer(timestamp)
             check_response(response)
-            if response['homeworks'] == []:
-                logger.debug('Ответ API пуст: нет домашних работ.')
             if first_compare:
                 message = parse_status(response.get('homeworks')[0])
                 send_message(bot, message)
