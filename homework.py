@@ -81,8 +81,6 @@ def check_response(response: dict) -> list:
     """Проверяет ответ API на соответствие документации."""
     if not isinstance(response, dict):
         raise TypeError(f'Некорректный тип данных {type(response)}')
-    if not ['homeworks']:
-        raise TypeError('В ответе API нет ДЗ')
     elif 'homeworks' not in response:
         raise TypeError('homeworks отсутствует в response')
     elif 'current_date' not in response:
@@ -122,6 +120,8 @@ def main() -> str:
         try:
             response = get_api_answer(timestamp)
             check_response(response)
+            if not ['homeworks']:
+                message = 'Нет ДЗ'
             if first_compare:
                 message = parse_status(response.get('homeworks')[0])
                 send_message(bot, message)
