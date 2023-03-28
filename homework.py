@@ -96,14 +96,11 @@ def parse_status(homework: dict) -> str:
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
     if homework_status is None:
-        message = 'Статус не изменён'
-        raise StatusResponceError(message)
+        raise StatusResponceError('Статус не изменён')
     if homework_status not in HOMEWORK_VERDICTS:
-        message = 'Некорректный статус'
-        raise StatusResponceError(message)
+        raise StatusResponceError('Некорректный статус')
     if homework_name is None:
-        message = 'Вашей работы нет'
-        raise StatusResponceError(message)
+        raise StatusResponceError('Вашей работы нет')
     verdict = HOMEWORK_VERDICTS.get(homework.get('status'))
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 

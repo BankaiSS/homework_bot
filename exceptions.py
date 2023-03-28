@@ -8,3 +8,4 @@ class ErrorOfRequest(Exception):
 
 class StatusResponceError(Exception):
     pass
+
