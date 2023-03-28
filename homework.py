@@ -68,11 +68,11 @@ def get_api_answer(timestamp: int) -> dict:
                     f'Ответ API: {homework_statuses.status_code}')
         if homework_statuses.status_code != HTTPStatus.OK:
             raise exceptions.NotStatusOkException(f'Ответ API:'
-                                       f'{homework_statuses.status_code}')
+                                                  f'{homework_statuses.status_code}')
         return homework_statuses.json()
     except requests.RequestException as error:
         raise exceptions.ErrorOfRequest(f'При запросе к API ЯП'
-                             f'возникла ошибка {error}')
+                                        f'возникла ошибка {error}')
     except JSONDecodeError as json_error:
         raise JSONDecodeError(f'Ошибка декодирования {json_error}')
 
