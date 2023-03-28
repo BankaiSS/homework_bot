@@ -1,4 +1,4 @@
-class NotStatusOkException(Exception):
+class NotStatusOk(Exception):
     pass
 
 

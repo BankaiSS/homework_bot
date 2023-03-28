@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import requests
 import telegram
 
-import exceptions
+from exceptions import NotStatusOk, ErrorOfRequest, StatusResponceError
 
 load_dotenv()
 
@@ -67,12 +67,12 @@ def get_api_answer(timestamp: int) -> dict:
         logger.info(f'Отправлен запрос к API. '
                     f'Ответ API: {homework_statuses.status_code}')
         if homework_statuses.status_code != HTTPStatus.OK:
-            raise exceptions.NotStatusOkException(f'Ответ API:'
-                                                  f'{homework_statuses.status_code}')
+            raise NotStatusOk(f'Ответ API:'
+                              f'{homework_statuses.status_code}')
         return homework_statuses.json()
     except requests.RequestException as error:
-        raise exceptions.ErrorOfRequest(f'При запросе к API ЯП'
-                                        f'возникла ошибка {error}')
+        raise ErrorOfRequest(f'При запросе к API ЯП'
+                             f'возникла ошибка {error}')
     except JSONDecodeError as json_error:
         raise JSONDecodeError(f'Ошибка декодирования {json_error}')
 
@@ -96,11 +96,11 @@ def parse_status(homework: dict) -> str:
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
     if homework_status is None:
-        raise exceptions.StatusResponceError('Статус не изменён')
+        raise StatusResponceError('Статус не изменён')
     if homework_status not in HOMEWORK_VERDICTS:
-        raise exceptions.StatusResponceError('Некорректный статус')
+        raise StatusResponceError('Некорректный статус')
     if homework_name is None:
-        raise exceptions.StatusResponceError('Вашей работы нет')
+        raise StatusResponceError('Вашей работы нет')
     verdict = HOMEWORK_VERDICTS.get(homework.get('status'))
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
