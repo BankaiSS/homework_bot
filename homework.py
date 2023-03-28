@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import requests
 import telegram
 
-from exceptions import ErrorOfRequest, NotStatusOkException
+from exceptions import ErrorOfRequest, NotStatusOkException, StatusResponceError
 
 load_dotenv()
 
@@ -81,31 +81,31 @@ def check_response(response: dict) -> list:
     """Проверяет ответ API на соответствие документации."""
     if not isinstance(response, dict):
         raise TypeError(f'Некорректный тип данных {type(response)}')
-    if not ['homeworks']:
-        raise TypeError('В ответе API нет ДЗ')
-    elif 'homeworks' not in response:
-        raise TypeError('homeworks отсутствует в response')
-    elif 'current_date' not in response:
+    homeworks = response.get('homeworks')
+    if homeworks is None:
+        raise IndexError('Отсутствует ключ "homework_name" в ответе API')
+    if not isinstance(homeworks, list):
+        raise TypeError('Ответ API не является списком')
+    if 'current_date' not in response:
         raise TypeError('current_date отсутствует в response')
-    elif not isinstance(response['homeworks'], list):
-        raise TypeError(
-            f"Некорректный тип данных {type(response['homeworks'])},"
-            f"Должен быть list"
-        )
+    return homeworks
 
 
 def parse_status(homework: dict) -> str:
     """Извлекает инфу о статусе ДЗ."""
-    if (not isinstance(homework, dict)
-        or 'status' not in homework
-            or homework.get('status') not in HOMEWORK_VERDICTS):
-        raise TypeError('Некорректный статус')
-    if 'homework_name' not in homework:
-        raise TypeError('В ответе отсутствует ожидаемый ключ')
     homework_name = homework.get('homework_name')
+    homework_status = homework.get('status')
+    if homework_status is None:
+        message = 'Статус не изменён'
+        raise StatusResponceError(message)
+    if homework_status not in HOMEWORK_VERDICTS:
+        message = 'Некорректный статус'
+        raise StatusResponceError(message)
+    if homework_name is None:
+        message = 'Вашей работы нет'
+        raise StatusResponceError(message)
     verdict = HOMEWORK_VERDICTS.get(homework.get('status'))
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
-
 
 def main() -> str:
     """Основная логика работы бота."""
@@ -115,31 +115,27 @@ def main() -> str:
         exit()
     check_tokens()
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
-    first_compare = True
-    previous_response = None
     timestamp = 1
+    last_message = ''
     while True:
         try:
             response = get_api_answer(timestamp)
-            check_response(response)
-            if first_compare:
-                message = parse_status(response.get('homeworks')[0])
-                send_message(bot, message)
+            homeworks = check_response(response)
+            if not homeworks:
+                message = 'Нет ДЗ'
             else:
-                status_1 = previous_response.get('homeworks')[0].get('status')
-                status_2 = response.get('homeworks')[0].get('status')
-                if status_1 != status_2:
-                    message = parse_status(response.get('homeworks')[0])
-                    send_message(bot, message)
-                    timestamp = response.get('current_date')
+                message = parse_status(homeworks[0])
+            if last_message != message:
+                send_message(bot, message)
+                last_message = message
+                timestamp = response.get('current_date')
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             send_message(bot, message)
             logger.exception(error, exc_info=True)
         finally:
-            previous_response = response
-            first_compare = False
-        time.sleep(RETRY_PERIOD)
+            time.sleep(RETRY_PERIOD)
+
 
 
 if __name__ == '__main__':
